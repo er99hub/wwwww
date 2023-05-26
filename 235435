@@ -1,0 +1,132 @@
+import os
+import tkinter as tk
+from tkinter import filedialog
+import json
+
+def search_keyword(event=None):
+    keyword = keyword_entry.get()
+    result_text.delete('1.0', tk.END)
+    
+    global search_results
+    search_results = []
+    
+    # 读取文件夹中所有的 json 文件
+    for filename in os.listdir(folder_path.get()):
+        if filename.endswith('.json'):
+            with open(os.path.join(folder_path.get(), filename), encoding='utf-8') as file:
+                data = json.load(file)
+
+                for item in data:
+                    if keyword in item:
+                        result_text.insert(tk.END, item + '\n')
+                        search_results.append(item)
+
+def search_again(event=None):
+    keyword = again_entry.get()
+    again_result_text.delete('1.0', tk.END)
+    
+    for result in search_results:
+        if keyword in result:
+            again_result_text.insert(tk.END, result + '\n')
+
+# 创建窗口
+window = tk.Tk()
+window.title("关键词搜索")
+window.geometry("900x300")
+
+# 左边关键词搜索框和文件夹选择框
+left_frame = tk.Frame(window)
+left_frame.pack(side=tk.LEFT, fill=tk.Y)
+
+search_frame = tk.Frame(left_frame)
+search_frame.pack(side=tk.TOP)
+
+folder_frame = tk.Frame(left_frame)
+folder_frame.pack(side=tk.TOP, padx=10, pady=10)
+
+keyword_label = tk.Label(search_frame, text="关键词搜索框：", font=('Arial', 12))
+keyword_label.pack(side=tk.TOP, padx=10, pady=10)
+
+keyword_entry = tk.Entry(search_frame, font=('Arial', 12))
+keyword_entry.pack(side=tk.TOP, padx=10, pady=10)
+keyword_entry.focus()  # 设置焦点，使输入框获得光标
+
+folder_label = tk.Label(folder_frame, text="选择文件夹：", font=('Arial', 12))
+folder_label.pack(side=tk.LEFT)
+
+folder_path = tk.StringVar()  # 用于存储选择的文件夹路径
+folder_path.set('.')
+
+folder_entry = tk.Entry(folder_frame, textvariable=folder_path, font=('Arial', 12), width=30)
+folder_entry.pack(side=tk.LEFT)
+
+def select_folder():
+    folder = filedialog.askdirectory()
+    folder_path.set(folder)
+
+folder_button = tk.Button(folder_frame, text="选择", font=('Arial', 12), command=select_folder)
+folder_button.pack(side=tk.LEFT, padx=10)
+
+search_button = tk.Button(search_frame, text="搜索", font=('Arial', 12), command=search_keyword)
+search_button.pack(side=tk.TOP, padx=10, pady=10)
+
+keyword_entry.bind("<Return>", search_keyword)  # 绑定回车键，自动触发搜索
+
+# 中间搜索结果显示框和滚动条
+result_frame = tk.Frame(window)
+result_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+result_text_size = tk.IntVar()
+result_text_size.set(12)
+
+result_text_size_scale = tk.Scale(result_frame, label="调整文本大小：", orient="horizontal", from_=8, to=24, variable=result_text_size, command=lambda x: result_text.config(font=('Arial', result_text_size.get())))
+result_text_size_scale.pack(side=tk.TOP, padx=10, pady=10)
+
+result_text_scrollbar = tk.Scrollbar(result_frame)
+result_text_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+result_text = tk.Text(result_frame, yscrollcommand=result_text_scrollbar.set)
+result_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+result_text_scrollbar.config(command=result_text.yview)
+result_frame.pack_propagate(0)
+
+# 右边再次搜索框和结果显示框
+right_frame = tk.Frame(window)
+right_frame.pack(side=tk.LEFT, fill=tk.Y)
+
+again_frame = tk.Frame(right_frame)
+again_frame.pack(side=tk.TOP)
+
+result_frame = tk.Frame(right_frame)
+result_frame.pack(side=tk.TOP, padx=10, pady=10)
+
+again_label = tk.Label(again_frame, text="搜索框和结果显示框：", font=('Arial', 12))
+again_label.pack(side=tk.TOP, padx=10, pady=10)
+
+again_entry = tk.Entry(again_frame, font=('Arial', 12))
+again_entry.pack(side=tk.TOP, padx=10, pady=10)
+
+again_entry.bind("<Return>", search_again)  # 绑定回车键，自动触发再次搜索
+
+again_result_text_size = tk.IntVar()
+again_result_text_size.set(12)
+
+again_result_text_size_scale = tk.Scale(result_frame, label="调整文本大小：", orient="horizontal", from_=8, to=24, variable=again_result_text_size, command=lambda x: again_result_text.config(font=('Arial', again_result_text_size.get())))
+again_result_text_size_scale.pack(side=tk.TOP, padx=10, pady=10)
+
+again_button = tk.Button(again_frame, text="再次搜索", font=('Arial', 12), command=search_again)
+again_button.pack(side=tk.TOP, padx=10, pady=10)
+
+again_result_frame = tk.Frame(right_frame)
+again_result_frame.pack(side=tk.TOP, padx=10, pady=10)
+
+again_result_text = tk.Text(again_result_frame, yscrollcommand=result_text_scrollbar.set)
+again_result_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+again_result_text_scrollbar = tk.Scrollbar(again_result_frame)
+again_result_text_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+again_result_text_scrollbar.config(command=again_result_text.yview)
+
+# 保存第一次搜索结果的列表
+search_results = []
+
+window.mainloop()
